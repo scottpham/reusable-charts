@@ -13,7 +13,8 @@ d3.edge.lineChart = function module() {
 		tickSize = 13,
 		labelClass = "label",
 		yAxisLabel = "This is the Y Axis",
-		strokeWidth = 5;
+		strokeWidth = 5,
+		strokeColor = "#28556F"; //dark blue
 
 	var margin = {
 		top: 30,
@@ -124,7 +125,9 @@ d3.edge.lineChart = function module() {
 	            .datum(_data)
 	            .attr("class", "line")
 	            .attr("d", line)
-	            .style("stroke-width", strokeWidth);
+	            .style("stroke-width", strokeWidth)
+	            .style("stroke", strokeColor)
+	            ;
 
 	        //mouseover effects
 	        var focus = svg.append("g")
@@ -132,7 +135,8 @@ d3.edge.lineChart = function module() {
 	          .style("display", "none");
 
 	        focus.append("circle")
-	          .attr("r", 6);
+	          .attr("r", 6)
+	          .style("stroke", strokeColor);
 
 	        focus.append("text")
 	          .attr("x", 9)
@@ -230,9 +234,9 @@ d3.edge.lineChart = function module() {
 		return this;
 	}
 
-	exports.strokeColor = {
+	exports.strokeColor = function(_x) {
 		//takes a css color or hex
-		if(!arguments.length) return strokeColor;
+		if (!arguments.length) return strokeColor;
 		strokeColor = _x;
 		return this;
 	}
