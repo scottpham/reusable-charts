@@ -5,14 +5,15 @@ var x = function(){},
 
 //linechart under the module namespace
 d3.edge.lineChart = function module() {
-	//define some privates
+	//define some globals
 	var mobileThreshold = 350,
 		aspect_width = 16,
 		aspect_height = 9,
 		pymChild = null,
 		tickSize = 13,
 		labelClass = "label",
-		yAxisLabel = "This is the Y Axis";
+		yAxisLabel = "This is the Y Axis",
+		strokeWidth = 5;
 
 	var margin = {
 		top: 30,
@@ -21,15 +22,10 @@ d3.edge.lineChart = function module() {
 		left: 50
 	};
 
-	//csv stuff (will probably not use)
-	var csvName = "us-strikes.csv",
-		xAccess = "year",
-		yAccess = "strikes";
-
-	var svg;
-
-	//remember this when defining bisection hover
-	var dispatch = d3.dispatch("customHover");
+	var tooltip = {
+		value: "strikes",
+		string: "strikes"
+	};
 
 	//everything below this is private
 	function exports(_selection) {
@@ -127,7 +123,8 @@ d3.edge.lineChart = function module() {
 	        svg.append("path")
 	            .datum(_data)
 	            .attr("class", "line")
-	            .attr("d", line);
+	            .attr("d", line)
+	            .style("stroke-width", strokeWidth);
 
 	        //mouseover effects
 	        var focus = svg.append("g")
@@ -178,17 +175,12 @@ d3.edge.lineChart = function module() {
 	           		.style("opacity", .9);
 
 	           	d3.select(".tooltip")
-	           		.html(format(d[pathY]) + " strikes");
-
-	           	d3.select(".toolTipG")
-	           		.attr("transform", "translate(" + x(d[pathX]) + "," + y(d[pathY]) + ")");
-
-	           	d3.select(".tooltip")
+	           		.html(format(d[pathY]) + " strikes")
 	           		.style("left", x(d[pathX]) + margin.left + "px")
 	           		.style("top", y(d[pathY]) + $("#graphic").position().top + "px");
 
 	           	d3.select(".tooltip")
-	           		.html(format(d[pathY]) + " strikes");
+	           		.html(format(d[tooltip.value]) + " " + tooltip.string);
 
 	        }//end mouseover effects
 		});
@@ -229,17 +221,22 @@ d3.edge.lineChart = function module() {
 		tooltip.value = _x,
 		tooltip.string = _y;
 		return this;
-
 	}
 
-	exports.csvName = function (_x) {
-		//takes the name or path of the csv
-		if (!arguments.length) return csvName;
-		csvName = _x;
+	exports.strokeWidth = function (_x) {
+		//takes a number
+		if (!arguments.length) return strokeWidth;
+		strokeWidth = _x;
 		return this;
 	}
 
-	d3.rebind(exports, dispatch, "on");
+	exports.strokeColor = {
+		//takes a css color or hex
+		if(!arguments.length) return strokeColor;
+		strokeColor = _x;
+		return this;
+	}
+
 	return exports;
 }; //end
 
