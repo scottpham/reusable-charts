@@ -56,11 +56,10 @@ d3.edge.lineChart = function module() {
 		    ifMobile(width);
 
 		    //create svg, transform it and group it
-		    var svg0 = d3.select(this)
+		    var svg = d3.select(this)
 		    	.append("svg")
 		        .attr("width", width + margin.left + margin.right)
-		        .attr("height", height + margin.top + margin.bottom),
-		        svg = svg0.append("g")
+		        .attr("height", height + margin.top + margin.bottom).append("g")
 		            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 		    var format = d3.format("0.2f");
@@ -79,7 +78,7 @@ d3.edge.lineChart = function module() {
 	        var xAxis = d3.svg.axis()
 	            .ticks(tickSize)
 	            .tickFormat(d3.format("f"))
-	            .tickSize(8,8,8)
+	            .tickSize(8,8,0)
 	            .orient("bottom")
 	            .scale(x);
 
@@ -99,8 +98,8 @@ d3.edge.lineChart = function module() {
 	            .call(yAxis)
 	            .append("text")
 	                .attr("transform", "rotate(-90)")
-	                .attr("y", -margin.left + 5)
-	                .attr("x", 0)
+	                .attr("y", -margin.left + 10)
+	                .attr("x", -10)
 	                .attr("dy", "0.71em")
 	                .style("text-anchor", "end")
 	                .attr("class", labelClass)
@@ -122,6 +121,7 @@ d3.edge.lineChart = function module() {
 	            .call(y_axis_grid()
 	                .tickSize(-width, 0, 0)
 	                .tickFormat(" "));
+	        //end grid
 
 	        //append line
 	        svg.append("path")
@@ -137,27 +137,17 @@ d3.edge.lineChart = function module() {
 	        focus.append("circle")
 	          .attr("r", 6);
 
-	        // //works
-	        // focus.append("rect")
-	        // 	.attr("height", "20")
-	        // 	.attr("width", "40")
-	        // 	.attr("class", "mytooltip")
-	        // 	.attr("x", "0")
-	        // 	.attr("y", "-10")
-	        // 	.attr("rx", "4").attr("ry", "4");
-
 	        focus.append("text")
 	          .attr("x", 9)
 	          .attr("dy", ".35em");
 
-	        //d3 tip
-	        tip = d3.tip().attr('class', 'd3-tip').html(function(d) { return format(d[pathY]) + " strikes"; });
-	        //calling tip in context
-	        focus.call(tip);
+		    var div = d3.select("#graphic").append("div")
+		    	.attr("class", "tooltip")
+		    	.style("opacity", 0);
 
 	        //mouseover overlay
 	        svg.append("rect")
-	          .attr("class", "overlay") 
+	          .attr("class", "overlay")
 	          .attr("width", width + margin.left + margin.right) //adjust these if the chart isn't capturing pointer events
 	          .attr("height", height + margin.top)
 	          .on("mouseover", function() { 
@@ -166,7 +156,9 @@ d3.edge.lineChart = function module() {
 	          .on("mouseout",
 	          	function(d) { 
 	          		focus.style("display", "none"); 
-	          		tip.hide(d);
+	          		div.transition()
+	          			.duration(500)
+	          			.style("opacity", 0);
 	          	})
 	          .on("mousemove", mousemove);
 
@@ -180,13 +172,23 @@ d3.edge.lineChart = function module() {
 	                d = x0 - d0[pathX] > d1[pathY] - x0 ? d1 : d0;
 
 	            focus.attr("transform", "translate(" + x(d[pathX]) + "," + y(d[pathY]) + ")");
+	            //show div
+	           	d3.select(".tooltip").transition()
+	           		.duration(200)
+	           		.style("opacity", .9);
 
-	            tip.show(d, focus.select("text"));
-	            
-	            focus.select("text")
-	                .attr("transform", "translate(" + -18 + "," + -20 + ")")
-	                .text(format(d[pathY]))
-	                .attr("class", labelClass);
+	           	d3.select(".tooltip")
+	           		.html(format(d[pathY]) + " strikes");
+
+	           	d3.select(".toolTipG")
+	           		.attr("transform", "translate(" + x(d[pathX]) + "," + y(d[pathY]) + ")");
+
+	           	d3.select(".tooltip")
+	           		.style("left", x(d[pathX]) + margin.left + "px")
+	           		.style("top", y(d[pathY]) + $("#graphic").position().top + "px");
+
+	           	d3.select(".tooltip")
+	           		.html(format(d[pathY]) + " strikes");
 
 	        }//end mouseover effects
 		});
@@ -194,26 +196,46 @@ d3.edge.lineChart = function module() {
 	}//end of exports
 
 	exports.xAccess = function (_x) {
+		//takes a function like function(d {return d.value; }
 		if(!arguments.length) return xAccess;
 		xAccess = _x;
 		return this;
 	};
 
 	exports.yAccess = function(_x) {
+		//takes a function like function(d {return d.value; }
 		if(!arguments.length) return yAccess;
 		yAccess = _x;
 		return this;
 	};
 
 	exports.pathX = function(_x) {
+		//give a csv header--the "value" in d.value
 		if(!arguments.length) return pathX;
 		pathX = _x;
 		return this;
 	}
 
 	exports.pathY = function(_x) {
+		//give a csv header--the "value" in d.value
 		if(!arguments.length) return pathY;
 		pathY = _x;
+		return this;
+	}
+
+	exports.tooltip = function(_x, _y) {
+		//takes the value passed to the tooltip and the string to follow it
+		if (!arguments.length) return tooltip;
+		tooltip.value = _x,
+		tooltip.string = _y;
+		return this;
+
+	}
+
+	exports.csvName = function (_x) {
+		//takes the name or path of the csv
+		if (!arguments.length) return csvName;
+		csvName = _x;
 		return this;
 	}
 

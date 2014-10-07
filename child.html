@@ -25,9 +25,6 @@
     <!--BOOTSTRAP CSS-->
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 
-    <!--d3.tip-->
-    <!--<link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css"> -->
-    <script src="//labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 
 
     <!--OPTIONAL LINKS-->
@@ -163,14 +160,6 @@
             font: 12px sans-serif;
         }
 
-        .legend {
-      
-        }
-
-        .legend text {
-            font: 14px sans-serif;
-        }
-
         .label {
             font: 12px sans-serif;
             fill: white;
@@ -184,23 +173,17 @@
             stroke: gray;
             stroke-width: 1px;
         }
-
-        
-        .mytooltip {            
-          fill: lightblue;  
-          border: 3px;      
-          border-radius: 8px;
-          z-index: -100;                  
-        }
-
-        .d3-tip {
-          line-height: 1;
-          font-weight: bold;
-          padding: 12px;
-          background: rgba(0, 0, 0, 0.8);
-          color: #fff;
-          border-radius: 2px;
-          pointer-events: none;
+           
+        div.tooltip {   
+          position: absolute;           
+          text-align: center;           
+          padding: 4px;             
+          font: 12px sans-serif;  
+          color: white;      
+          background: black;   
+          border: 0px;      
+          border-radius: 4px;           
+          pointer-events: none;         
         }
 
         </style>
