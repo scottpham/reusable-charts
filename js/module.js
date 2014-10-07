@@ -40,6 +40,20 @@ d3.edge.lineChart = function module() {
 
 		    //set height
 		    var height = Math.ceil((width * aspect_height) / aspect_width) - margin.top - margin.bottom;
+		   	//mobile checks
+
+			function ifMobile(w) {
+				if(w < mobileThreshold){
+				   labelClass = 'labelSmall';
+				   tickSize = Math.ceil(tickSize/2);
+				   }
+				else {
+				    tickSize = tickSize;
+				    labelClass = labelClass;
+				}}
+
+		    //set mobile variables
+		    ifMobile(width);
 
 		    //create svg, transform it and group it
 		    var svg0 = d3.select(this)
@@ -61,8 +75,6 @@ d3.edge.lineChart = function module() {
 					.range([0, width])
 					.domain(d3.extent(_data, xAccess),
 				y = d3.scale.linear().range([height, 0]).domain([0, d3.max(_data, yAccess)]));
-
-			console.log(y(10));
 
 	        var xAxis = d3.svg.axis()
 	            .ticks(tickSize)
@@ -91,7 +103,7 @@ d3.edge.lineChart = function module() {
 	                .attr("x", 0)
 	                .attr("dy", "0.71em")
 	                .style("text-anchor", "end")
-	                .attr("class", labelClass) //changes on mobile?
+	                .attr("class", labelClass)
 	                .text(yAxisLabel);  
 
 	        var line = d3.svg.line()
@@ -125,21 +137,21 @@ d3.edge.lineChart = function module() {
 	        focus.append("circle")
 	          .attr("r", 6);
 
-	        //works
-	        focus.append("rect")
-	        	.attr("height", "20")
-	        	.attr("width", "40")
-	        	.attr("class", "mytooltip")
-	        	.attr("x", "0")
-	        	.attr("y", "-10")
-	        	.attr("rx", "4").attr("ry", "4");
+	        // //works
+	        // focus.append("rect")
+	        // 	.attr("height", "20")
+	        // 	.attr("width", "40")
+	        // 	.attr("class", "mytooltip")
+	        // 	.attr("x", "0")
+	        // 	.attr("y", "-10")
+	        // 	.attr("rx", "4").attr("ry", "4");
 
 	        focus.append("text")
 	          .attr("x", 9)
 	          .attr("dy", ".35em");
 
 	        //d3 tip
-	        tip = d3.tip().attr('class', 'd3-tip').html(function(d) { return d[pathY]; });
+	        tip = d3.tip().attr('class', 'd3-tip').html(function(d) { return format(d[pathY]) + " strikes"; });
 	        //calling tip in context
 	        focus.call(tip);
 
@@ -147,11 +159,15 @@ d3.edge.lineChart = function module() {
 	        svg.append("rect")
 	          .attr("class", "overlay") 
 	          .attr("width", width + margin.left + margin.right) //adjust these if the chart isn't capturing pointer events
-	          .attr("height", height + margin.top + margin.bottom)
+	          .attr("height", height + margin.top)
 	          .on("mouseover", function() { 
 	          		focus.style("display", null);
 	          		})
-	          .on("mouseout", function() { focus.style("display", "none"); })
+	          .on("mouseout",
+	          	function(d) { 
+	          		focus.style("display", "none"); 
+	          		tip.hide(d);
+	          	})
 	          .on("mousemove", mousemove);
 
 	        var bisectDate = d3.bisector(function(d) { return d[pathX]; }).left;
@@ -164,9 +180,8 @@ d3.edge.lineChart = function module() {
 	                d = x0 - d0[pathX] > d1[pathY] - x0 ? d1 : d0;
 
 	            focus.attr("transform", "translate(" + x(d[pathX]) + "," + y(d[pathY]) + ")");
-					   
-	            svg.select(".mytooltip")
-	            	.attr("transform", "translate(" + -18 + "," + -20 + ")");
+
+	            tip.show(d, focus.select("text"));
 	            
 	            focus.select("text")
 	                .attr("transform", "translate(" + -18 + "," + -20 + ")")

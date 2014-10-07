@@ -20,11 +20,6 @@ var colors = {
  * Render the graphic
  */
 
- var config = {
-    'tickSize' : '10',
-    'labelClass' : 'label'
-
- }
 
 function draw_graphic(width){
     if (Modernizr.svg){
@@ -50,8 +45,8 @@ function render(id, container_width) { //consider container width vs. graphic wi
     //check for mobile
     function ifMobile (w) {
         if(w < mobileThreshold){
-           config.labelClass = 'labelSmall';
-           config.tickSize = '5';
+           labelClass = 'labelSmall';
+           tickSize = Math.ceil(tickSize/2);
            config.labelText = "Strikes / 10k Flights"
            }
 
