@@ -45,7 +45,7 @@ d3.edge.lineChart = function module() {
 		    var svg0 = d3.select(this)
 		    	.append("svg")
 		        .attr("width", width + margin.left + margin.right)
-		        .attr("height", height + margin.top + margin.top + margin.bottom),
+		        .attr("height", height + margin.top + margin.bottom),
 		        svg = svg0.append("g")
 		            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -61,6 +61,8 @@ d3.edge.lineChart = function module() {
 					.range([0, width])
 					.domain(d3.extent(_data, xAccess),
 				y = d3.scale.linear().range([height, 0]).domain([0, d3.max(_data, yAccess)]));
+
+			console.log(y(10));
 
 	        var xAxis = d3.svg.axis()
 	            .ticks(tickSize)
@@ -86,7 +88,7 @@ d3.edge.lineChart = function module() {
 	            .append("text")
 	                .attr("transform", "rotate(-90)")
 	                .attr("y", -margin.left + 5)
-	                .attr("x", -5)
+	                .attr("x", 0)
 	                .attr("dy", "0.71em")
 	                .style("text-anchor", "end")
 	                .attr("class", labelClass) //changes on mobile?
@@ -142,7 +144,7 @@ d3.edge.lineChart = function module() {
 	        focus.call(tip);
 
 	        //mouseover overlay
-	        svg0.append("rect")
+	        svg.append("rect")
 	          .attr("class", "overlay") 
 	          .attr("width", width + margin.left + margin.right) //adjust these if the chart isn't capturing pointer events
 	          .attr("height", height + margin.top + margin.bottom)
@@ -207,7 +209,7 @@ d3.edge.lineChart = function module() {
 //useage
 var myLineChart = d3.edge.lineChart()
 	.xAccess(function(d) {return d.year;})
-	.yAccess(function(d) {return d.strikes;})
+	.yAccess(function(d) {return +d.strikes;})
 	.pathX("year")
 	.pathY("strikes");
 
