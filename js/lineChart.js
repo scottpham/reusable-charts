@@ -1,11 +1,11 @@
 //namespace
-d3.edge = {};
+d3.custom = {};
 var x = function(){},
 	y = function(){};
 
 //linechart under the module namespace
-d3.edge.lineChart = function module() {
-	//define some globals
+d3.custom.lineChart = function module() {
+	//define some private vars
 	var mobileThreshold = 350,
 		aspect_width = 16,
 		aspect_height = 9,
@@ -15,38 +15,39 @@ d3.edge.lineChart = function module() {
 		yAxisLabel = "This is the Y Axis",
 		strokeWidth = 5,
 		strokeColor = "#28556F" //dark blue
-		pathX = "year"
-		pathY = "value"
-		xScale = "d3.scale.linear()";
+		xScale = d3.scale.linear();
 
 	var margin = {
-		top: 30,
-		right: 30,
+		top: 10,
+		right: 10,
 		bottom: 30,
 		left: 50
 	};
 
 	var tooltip = {
-		value: pathY,
+		value: "",
 		string: ""
 	};
-
-	var xFormat = d3.format("f"),
-		yFormat = d3.format("f");
+	//formats
+	var xFormat = d3.format(".f"),
+		yFormat = d3.format(".f"),
+		yAxisFormat = yFormat;
 
 	//everything below this is private
 	function exports(_selection) {
 		_selection.each(function(_data) {
+
+		var selection = "#" + [_selection[0][0].id]
+
+		console.log(selection)
+		console.log(_data);
 		// Convert data to standard representation greedily;
 		// this is needed for nondeterministic accessors.
 		_data = _data.map(function(d, i) {
 			return [xAccess.call(_data, d, i), yAccess.call(_data, d, i)];
 			});
 
-		console.log(_data);
-
 	    	//find width of container
-	    	//var $graphic = $(_selection);
 		    var width = $(this).width() - margin.left - margin.right;
 
 		    //set height
@@ -57,10 +58,13 @@ d3.edge.lineChart = function module() {
 				if(w < mobileThreshold){
 				   labelClass = 'labelSmall';
 				   tickSize = Math.ceil(tickSize/2);
+				   strokeWidth = Math.ceil(strokeWidth/2);
+				   console.log("Mobile Threshold Reached")
 				   }
 				else {
 				    tickSize = tickSize;
 				    labelClass = labelClass;
+				    strokeWidth = strokeWidth;
 				}}
 
 		    //set mobile variables
@@ -93,7 +97,7 @@ d3.edge.lineChart = function module() {
 
 	        var yAxis = d3.svg.axis()
 	            .orient("left")
-	            .tickFormat(yFormat)
+	            .tickFormat(yAxisFormat)
 	            .ticks(tickSize)
 	            .tickSize(5,5,0)
 	            .scale(y);
@@ -154,14 +158,14 @@ d3.edge.lineChart = function module() {
 	          .attr("x", 9)
 	          .attr("dy", ".35em");
 
-		    var div = d3.select("#graphic").append("div")
+		    var div = d3.select(selection).append("div")
 		    	.attr("class", "tooltip")
 		    	.style("opacity", 0);
 
 	        //mouseover overlay
 	        svg.append("rect")
 	          .attr("class", "overlay")
-	          .attr("width", width + margin.left + margin.right) //adjust these if the chart isn't capturing pointer events
+	          .attr("width", width) //adjust these if the chart isn't capturing pointer events
 	          .attr("height", height + margin.top)
 	          .on("mouseover", function() { 
 	          		focus.style("display", null);
@@ -186,16 +190,18 @@ d3.edge.lineChart = function module() {
 
 	            focus.attr("transform", "translate(" + x(d[0]) + "," + y(d[1]) + ")");
 	            //show div
-	           	d3.select(".tooltip").transition()
+	           	d3.select(selection).selectAll(".tooltip").transition()
 	           		.duration(200)
 	           		.style("opacity", .9);
 
-	           	d3.select(".tooltip")
+	           	d3.select(selection).selectAll(".tooltip")
 	           		.html(yFormat(d[1]) + " strikes")
 	           		.style("left", x(d[0]) + margin.left + "px")
-	           		.style("top", y(d[1]) + $("#graphic").position().top + "px");
+	           		.style("top", y(d[1]) + $(selection).position().top + "px");
 
-	           	d3.select(".tooltip")
+	           	console.log( $(selection).position().top + "px");
+
+	           	d3.select(selection).selectAll(".tooltip")
 	           		.html(yFormat(d[1]) + " " + tooltip.string);
 
 	        }//end mouseover effects
@@ -289,45 +295,29 @@ d3.edge.lineChart = function module() {
 		return this;
 	}
 
+	exports.marginLeft = function(_x) {
+		//takes a number: 
+		if (!arguments.length) return margin.left;
+		margin.left = _x;
+		return this;
+	}
+
 	exports.xScale = function(_x) {
-		//takes a margin object: 
+		//takes a d3 scale
 		if (!arguments.length) return xScale;
 		xScale = _x;
 		return this;
 	}
 
+	exports.yAxisFormat = function(_x) {
+		//takes a margin object: 
+		if (!arguments.length) return yAxisFormat;
+		yAxisFormat = _x;
+		return this;
+	}
 
 	return exports;
+
 }; //end
 
-//useage
-
-var formatDate = d3.time.format("%b %Y");
-
-
-var myLineChart = d3.edge.lineChart()
-	.xAccess(function(d) {return formatDate.parse(d.date); })
-	.yAccess(function(d) {return +d.price; })
-	.pathX("date")
-	.pathY("price")
-	.yAxisLabel("Dollars")
-	.margin({left: 65,
-			 right: 10,
-			 top: 20, 
-			 bottom: 20
-				})
-	.tickSize(10)
-	.xFormat(d3.time.format("%Y"))
-	.yFormat(d3.format("0.2s"))
-	.xScale(d3.time.scale());
-
-
-
-d3.csv("sp500.csv", function(data) {
-	console.log(data);
-	d3.select("#graphic")
-		.datum(data)
-		.call(myLineChart);
-	console.log()
-});
 

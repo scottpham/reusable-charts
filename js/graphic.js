@@ -186,30 +186,8 @@ function render(id, container_width) { //consider container width vs. graphic wi
                 .attr("class", config.labelClass);
         }//end mouseover effects
 
-    //end of d3.csv
     });
 
 
-    //end mouseover effect
-    if (pymChild) {
-        pymChild.sendHeightToParent();
-    }
+}//
 
-}//end function render    
-
-/*
- * NB: Use window.load instead of document.ready
- * to ensure all images have loaded
- */
-$(window).load(function() {
-
-    if (Modernizr.svg){
-        pymChild = new pym.Child({
-            renderCallback: draw_graphic
-        });
-    }
-    else {
-        pymChild = new pym.Child();
-    }
-
-})
