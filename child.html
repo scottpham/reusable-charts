@@ -82,8 +82,16 @@
 <!--D3 Chart Styles-->
 <style type="text/css">
 
-        .bar:hover {
-            opacity: .75;
+        /*Grid Style*/
+        .grid .tick {
+            shape-rendering: crispEdges;
+            stroke: lightgray;
+            stroke-dasharray: 1px 3px;
+            ;
+        }
+
+        .grid path {
+            stroke-width: 1;
         }
 
         .axis {
@@ -127,17 +135,6 @@
             fill: gray;
         }
 
-        /*Grid Style*/
-        .grid .tick {
-            shape-rendering: crispEdges;
-            stroke: lightgray;
-            stroke-dasharray: 1px 3px;
-            ;
-        }
-
-        .grid path {
-            stroke-width: 1;
-        }
 
         .line {
             fill: none;
