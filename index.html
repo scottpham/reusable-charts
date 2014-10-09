@@ -14,27 +14,13 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <!--BOOTSTRAP JS-->
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <!--MODERNIZR-->
-    <script src ="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.2/modernizr.min.js" type="text/javascript" ></script>
-    <!--NBC PYM -->
-    <script src="//data.nbcstations.com/national/KNTV/libraries/pym.js"></script>
+
     <!--D3 CDN-->
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.9/d3.js"></script>
     <!--END JS-->
  
     <!--BOOTSTRAP CSS-->
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-
-    <!--OPTIONAL LINKS-->
-    <!--
-    <script src="//cdnjs.cloudflare.com/ajax/libs/pym/0.1.0/pym.js" type="text/javascript"></script>
-    <script src="//d3js.org/d3.v3.min.js"></script>
-    <script src="//d3js.org/topojson.v1.min.js"></script>
-    <script src="//d3js.org/colorbrewer.v1.min.js"></script>
-    <script src="//d3js.org/queue.v1.min.js"></script>
-    -->
-
-    <!--CSS-->
 
 
     <style type="text/css">
@@ -95,42 +81,26 @@
         .axis {
             font: 12px sans-serif;
         }
-        .y.axis line {
-            shape-rendering: crispEdges;
-            stroke: gray;
-
-        }
-
-        .y.axis path {
+        
+        .axis line {
             shape-rendering: crispEdges;
             fill: none;
             stroke: gray;
         }
 
-        .y.axis tick {
+        .axis text {
+            fill: gray;
+            shape-rendering: crispEdges;
+        }
+
+        .axis path {
+            shape-rendering: crispEdges;
+            stroke: gray;
+        }
+
+        .axis tick {
             stroke: gray;
         } 
-
-        .y.axis text {
-            fill: gray;
-            shape-rendering: crispEdges;
-        }
-
-        .x.axis line {
-            shape-rendering: crispEdges;
-            stroke: gray;
-        }
-
-        .x.axis path {
-            shape-rendering: crispEdges;
-            fill: none;
-            stroke: gray;
-        }
-
-        .x.axis text {
-            fill: gray;
-        }
-
 
         .line {
             fill: none;
@@ -142,6 +112,7 @@
             fill: none;
             pointer-events: all;
         }
+
         /*mouseover styles*/
         .focus circle {
             fill: white;
@@ -179,27 +150,30 @@
           pointer-events: none;         
         }
 
-        #graphic1 {
-            width: 49%;
-            float:left;
-        }
-
-        #graphic2 {
-            width:49%;
-            float:left;
-        }
-
         </style>
 </head>
 <body>
-    <h1>Birdstrikes in the National Airspace</h1>
-    <h2>National wildlife strikes per 10,000 flights, 1990-2013.</h2>
-    <p>People fly more than they used to, but planes are striking birds and other wildlife at an even faster rate. In 1990, there were about 2.59 wildlife strikes for every 10,000 flights flown.  Now, there are more than 10 strikes per 10,000 flights. </p>
+    <h1>Chart Title</h1>
+    <h2>Chart Subtitle</h2>
+    <p>Graf</p>
 
-    <div id="graphic1">
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div id="graphic1"></div>
+        </div>
+
+        <div class="col-md-4">
+            <div id="graphic2"></div>
+        </div>
+
+        <div class="col-md-4">
+            <div id="graphic3"></div>
+        </div>
+
+
     </div>
-    <div id="graphic2">
-    </div>
+</div>
 
 
     <div class="footer">
@@ -212,13 +186,6 @@
     
     <script type="text/javascript">
 
-    // function draw_graphic(width){
-    //     if (Modernizr.svg){
-    //         $graphic.empty();
-
-    //     render('graphic', width)
-    //     }
-    // }
 
 
         //specify options
@@ -228,7 +195,11 @@
         .xAccess(function(d) {return d.year; })
         .yAccess(function(d) {return +d.sfo; })
         .yAxisLabel("SFO")
-        .yFormat(d3.format("0.2f"));
+        .yFormat(d3.format("0.2f"))
+        .strokeWidth(5)
+        .yMax(26)
+        .hover("false")
+        .marginLeft(45);
 
     d3.csv("airport-strikes.csv", function(data) {
         d3.select("#graphic1")
@@ -236,25 +207,69 @@
             .call(myLineChart);
     });
 
-
-    var formatDate = d3.time.format("%b %Y");
-
-    var secondLineChart = d3.custom.lineChart()
-        .xAccess(function(d) {return formatDate.parse(d.date); })
-        .yAccess(function(d) {return +d.price; })
-        .yAxisLabel("S&P")
+    var myLineChart2 = d3.custom.lineChart()
+        .xAccess(function(d) {return d.year; })
+        .yAccess(function(d) {return +d.oak; })
+        .yAxisLabel("OAK")
         .yFormat(d3.format("0.2f"))
-        .xFormat(d3.time.format("%Y"))
-        .xScale(d3.time.scale())
-        .marginLeft(65)
-        .tickSize(10);
+        .strokeWidth(5)
+        .yMax(26)
+        .marginLeft(45);
 
-         //specify data source
-    d3.csv("sp500.csv", function(datas) {
-        d3.selectAll("#graphic2")
-            .datum(datas)
-            .call(secondLineChart);
+    d3.csv("airport-strikes.csv", function(data) {
+        d3.select("#graphic2")
+            .datum(data)
+            .call(myLineChart2);
     });
+
+    // var myLineChart3 = d3.custom.lineChart()
+    //     .xAccess(function(d) {return d.year; })
+    //     .yAccess(function(d) {return +d.sjc; })
+    //     .yAxisLabel("SJC")
+    //     .yFormat(d3.format("0.2f"))
+    //     .strokeWidth(5)
+    //     .yMax(26)
+    //     .marginLeft(45);
+
+    // d3.csv("airport-strikes.csv", function(data) {
+    //     d3.select("#graphic3")
+    //         .datum(data)
+    //         .call(myLineChart3);
+    // });
+
+    var secondLine = d3.custom.addLine()
+        .xAccess(function(d) { return d.year; })
+        .yAccess(function(d) { return +d.oak; })
+        .strokeColor("lightblue")
+        .strokeWidth(5)
+        .yMax(26);
+
+    d3.csv("airport-strikes.csv", function(data){
+        d3.select("#graphic1")
+            .datum(data)
+            .call(secondLine);
+    })
+
+
+    // var formatDate = d3.time.format("%b %Y");
+
+    // var secondLineChart = d3.custom.lineChart()
+    //     .xAccess(function(d) {return formatDate.parse(d.date); })
+    //     .yAccess(function(d) {return +d.price; })
+    //     .yAxisLabel("S&P")
+    //     .yFormat(d3.format("0.2f"))
+    //     .xFormat(d3.time.format("%Y"))
+    //     .xScale(d3.time.scale())
+    //     .marginLeft(75)
+    //     .tickSize(10)
+    //     .tooltip(function(d) {return +d.price; }, "dollars");
+
+    //      //specify data source
+    // d3.csv("sp500.csv", function(datas) {
+    //     d3.selectAll("#graphic")
+    //         .datum(datas)
+    //         .call(secondLineChart);
+    // });
 
 
 

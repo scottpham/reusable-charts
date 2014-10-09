@@ -9,13 +9,12 @@ d3.custom.lineChart = function module() {
 		aspect_width = 16,
 		aspect_height = 9,
 		tickSize = 13,
-		labelClass = "label",
 		yAxisLabel = "This is the Y Axis",
 		strokeWidth = 5,
 		strokeColor = "#28556F", //dark blue
-		xScale = d3.scale.linear(),
-		xAccess = function(d){ return d.year},
-		yAccess = function(d){ return d.value};
+		xAccess = function(d){ return d.year;},
+		yAccess = function(d){ return d.value;},
+		hover = "true";
 
 	var margin = {
 		top: 10,
@@ -25,13 +24,20 @@ d3.custom.lineChart = function module() {
 	};
 
 	var tooltip = {
-		value: "",
+		value: "",//unused for now.  Only useful if more than two columns of data are present
 		string: ""
 	};
 	//formats
-	var xFormat = d3.format(".f"),
-		yFormat = d3.format(".f"),
-		yAxisFormat = yFormat;
+	var xFormat = d3.format("f"),
+		yFormat = d3.format("f"), //two decimal placs
+		yAxisFormat = d3.format("s");
+
+	var _data = [];
+	//scales
+	var xScale = d3.scale.linear(),
+		yScale = d3.scale.linear(),
+		yMax = d3.max(_data, function(d) { return d[1]; });
+
 
 	//everything below this is private
 	function exports(_selection) {
@@ -41,6 +47,7 @@ d3.custom.lineChart = function module() {
 
 		console.log(_selection);
 		console.log(_data);
+
 		// Convert data to standard representation greedily;
 		// this is needed for nondeterministic accessors.
 		_data = _data.map(function(d, i) {
@@ -56,27 +63,25 @@ d3.custom.lineChart = function module() {
 
 			function ifMobile(w) {
 				if(w < mobileThreshold){
-				   labelClass = 'labelSmall';
 				   tickSize = Math.ceil(tickSize/2);
 				   strokeWidth = Math.ceil(strokeWidth/2);
 				   console.log("Mobile Threshold Reached");
+	         fontSize = "10px sans-serif";
 				   }
 				else {
 				    tickSize = tickSize;
-				    labelClass = labelClass;
 				    strokeWidth = strokeWidth;
+				    fontSize = "12px sans-serif";
 				}}
 
 		    //set mobile variables
 		    ifMobile(width);
 
 		   	//scales
-			var x = xScale
-					.range([0, width])
+			var x = xScale.range([0, width])
 					.domain(d3.extent(_data, function(d) { return d[0]; }));
 
-			//note: make y scale accessible via api
-			var y = d3.scale.linear().range([height, 0]).domain([0, d3.max(_data, function(d) { return d[1]; })]);	
+			var y = yScale.range([height, 0]).domain([0, yMax]); //ymax is a function or a number	
 
 		    //define axes
 	        var xAxis = d3.svg.axis()
@@ -130,17 +135,19 @@ d3.custom.lineChart = function module() {
 
 		    g.select(".x.axis")
 		    	.attr("transform", "translate(0," + height + ")")
+		    	.style("font", fontSize)
 		    	.call(xAxis);
 
 		    g.select(".y.axis")
 		    	.call(yAxis)
+		    	.style("font", fontSize)
 	            .append("text")
 	                .attr("transform", "rotate(-90)")
 	                .attr("y", -margin.left + 10)
 	                .attr("x", -10)
 	                .attr("dy", "0.71em")
 	                .style("text-anchor", "end")
-	                .attr("class", labelClass)
+	                .style("font", fontSize)
 	                .text(yAxisLabel);  
 
 	        //grid
@@ -168,15 +175,18 @@ d3.custom.lineChart = function module() {
 	          .attr("x", 9)
 	          .attr("dy", ".35em");
 
-		    var div = d3.select(selection).append("div")
+		    var div = d3.select(this).append("div")
 		    	.attr("class", "tooltip")
-		    	.style("opacity", 0);
+		    	.style("opacity", 0)
+		    	.style("font", fontSize);
 
 	        //mouseover overlay
-	        g.select(".overlay")
-	          .attr("width", width) //adjust these if the chart isn't capturing pointer events
-	          .attr("height", height + margin.top)
+	        g.select(".overlay").append("rect")
+	          .attr("width", width) 
+	          .attr("height", height)
 	          .on("mouseover", function() { 
+					if (hover=="false") {
+	        		return;}
 	          		focus.style("display", null);
 	          		})
 	          .on("mouseout",
@@ -191,6 +201,9 @@ d3.custom.lineChart = function module() {
 	        var bisectDate = d3.bisector(function(d) { return d[0];}).left;
 	        
 	        function mousemove(d) {
+	        	if (hover=="false") {
+	        		return;}
+
 	            var x0 = x.invert(d3.mouse(this)[0]),
 	                i = bisectDate(_data, x0, 1),
 	                d0 = _data[i - 1],
@@ -205,10 +218,8 @@ d3.custom.lineChart = function module() {
 
 	           	d3.select(selection).selectAll(".tooltip")
 	           		.html(yFormat(d[1]) + " strikes")
-	           		.style("left", x(d[0]) + margin.left + "px")
-	           		.style("top", y(d[1]) + $(selection).position().top + "px");
-
-	           	console.log( $(selection).position().top + "px");
+	           		.style("left", x(d[0]) + margin.left + $(selection).position().left + "px")
+	           		.style("top", y(d[1]) + $(selection).position().top + -20 + "px");
 
 	           	d3.select(selection).selectAll(".tooltip")
 	           		.html(yFormat(d[1]) + " " + tooltip.string);
@@ -219,39 +230,30 @@ d3.custom.lineChart = function module() {
 	}//end of exports
 
 	exports.xAccess = function (_x) {
-		//takes a function like function(d {return d.value; }
+		//takes a function in the form of function(d {return d.value; }
 		if(!arguments.length) return xAccess;
 		xAccess = _x;
 		return this;
 	};
 
 	exports.yAccess = function(_x) {
-		//takes a function like function(d {return d.value; }
+		//takes a function in the form of function(d {return d.value; }
 		if(!arguments.length) return yAccess;
 		yAccess = _x;
 		return this;
 	};
 
-	exports.pathX = function(_x) {
-		//give a csv header--the "value" in d.value
-		if(!arguments.length) return pathX;
-		pathX = _x;
-		return this;
-	};
-
-	exports.pathY = function(_x) {
-		//give a csv header--the "value" in d.value
-		if(!arguments.length) return pathY;
-		pathY = _x;
+	exports.tooltipValue = function(_x) {
+		//not used right now
+		if (!arguments.length) return tooltip.value;
 		tooltip.value = _x;
 		return this;
 	};
 
-	exports.tooltip = function(_x, _y) {
-		//takes the value passed to the tooltip and the string to follow it
-		if (!arguments.length) return tooltip;
-		tooltip.value = _x;
-		tooltip.string = _y;
+	exports.tooltipString = function(_x) {
+		//takes a string in the form "unit"
+		if (!arguments.length) return tooltip.string;
+		tooltip.string = _x;
 		return this;
 	};
 
@@ -270,14 +272,14 @@ d3.custom.lineChart = function module() {
 	};
 
 	exports.yFormat = function(_x) {
-		//takes a d3.format string
+		//takes a d3.format method in the form of d3.format("0.2f")
 		if (!arguments.length) return yFormat;
 		yFormat = _x;
 		return this;
 	};
 
 	exports.xFormat = function(_x) {
-		//takes a d3.format string
+		//takes a format method in the form of d3.format("0.2f")
 		if (!arguments.length) return xFormat;
 		xFormat = _x;
 		return this;
@@ -298,30 +300,51 @@ d3.custom.lineChart = function module() {
 	};
 
 	exports.margin = function(_x) {
-		//takes a margin object: 
+		//takes a margin object in the form of {top: 10,right: 10, bottom: 30, left: 50}; 
 		if (!arguments.length) return margin;
 		margin = _x;
 		return this;
 	};
 
 	exports.marginLeft = function(_x) {
-		//takes a number: 
+		//takes a number
 		if (!arguments.length) return margin.left;
 		margin.left = _x;
 		return this;
 	};
 
 	exports.xScale = function(_x) {
-		//takes a d3 scale
+		//takes a d3 scale in the form of d3.scale.linear()
 		if (!arguments.length) return xScale;
 		xScale = _x;
 		return this;
 	};
 
 	exports.yAxisFormat = function(_x) {
-		//takes a margin object: 
+		//a format in the form of d3.format("string");
 		if (!arguments.length) return yAxisFormat;
 		yAxisFormat = _x;
+		return this;
+	};
+
+	exports.yMax = function(_x) {
+		//takes a number; 
+		if (!arguments.length) return yMax;
+		yMax = _x;
+		return this;
+	};
+
+	exports.yScale = function(_x) {
+		//takes a scale in the format of d3.scale.linear();
+		if (!arguments.length) return yScale;
+		yScale = _x;
+		return this;
+	};
+
+	exports.hover = function(_x) {
+		//takes bool
+		if (!arguments.length) return hover;
+		hover = _x;
 		return this;
 	};
 
@@ -329,3 +352,140 @@ d3.custom.lineChart = function module() {
 
 }; //end
 
+/////////////// add line module ///////////
+d3.custom.addLine = function module() {
+	//private vars
+	var mobileThreshold = 350,
+		aspect_width = 16,
+		aspect_height = 9,
+		tickSize = 13,
+		yAxisLabel = "This is the Y Axis",
+		strokeWidth = 5,
+		strokeColor = "#28556F", //dark blue
+		xAccess = function(d){ return d.year;},
+		yAccess = function(d){ return d.value;};
+
+	var margin = {
+		top: 10,
+		right: 10,
+		bottom: 30,
+		left: 50
+	};
+
+	//formats
+	var xFormat = d3.format("f"),
+		yFormat = d3.format("f"), //two decimal placs
+		yAxisFormat = d3.format("s");
+
+	var _data = [];
+	//scales
+	var xScale = d3.scale.linear(),
+		yScale = d3.scale.linear(),
+		yMax = d3.max(_data, function(d) { return d[1]; });
+
+	function exports(_selection) {
+		_selection.each(function(_data){
+
+			_data = _data.map(function(d, i) {
+				return [xAccess.call(_data, d, i), yAccess.call(_data, d, i)];
+			});
+
+	    //find width of container
+	    var width = $(this).width() - margin.left - margin.right;
+
+	    //set height
+	    var height = Math.ceil((width * aspect_height) / aspect_width) - margin.top - margin.bottom;
+
+	    //change on mobile
+	    function ifMobile(w) {
+				if(w < mobileThreshold){
+				   strokeWidth = Math.ceil(strokeWidth/2);
+				   console.log("Mobile Threshold Reached");				   }
+				else {
+				    strokeWidth = strokeWidth;
+				}}
+
+		    //set mobile variables
+		    ifMobile(width);
+
+		//scales
+		var x = xScale.range([0, width])
+				.domain(d3.extent(_data, function(d) { return d[0]; }));
+
+		var y = yScale.range([height, 0]).domain([0, yMax]);
+
+		//define line
+        var line = d3.svg.line()
+            .x(function(d) {return x(d[0]); })
+            .y(function(d) {return y(d[1]); });	        
+	    //look for svg and select
+	    var svg = d3.select(this).selectAll("svg");
+
+		var g = svg.select("g")
+
+		g.append("path")
+			.datum(_data)
+			.attr("class", "line")
+			.attr("d", line)
+	        .style("stroke-width", strokeWidth)
+	        .style("stroke", strokeColor);
+	});//end selection.each
+	}//end exports
+
+	exports.xAccess = function (_x) {
+		//takes a function in the form of function(d {return d.value; }
+		if(!arguments.length) return xAccess;
+		xAccess = _x;
+		return this;
+		};
+
+	exports.yAccess = function(_x) {
+		//takes a function in the form of function(d {return d.value; }
+		if(!arguments.length) return yAccess;
+		yAccess = _x;
+		return this;
+	};
+
+	exports.tooltipValue = function(_x) {
+		//not used right now
+		if (!arguments.length) return tooltip.value;
+		tooltip.value = _x;
+		return this;
+	};
+
+	exports.tooltipString = function(_x) {
+		//takes a string in the form "unit"
+		if (!arguments.length) return tooltip.string;
+		tooltip.string = _x;
+		return this;
+	};
+
+	exports.strokeWidth = function (_x) {
+		//takes a number
+		if (!arguments.length) return strokeWidth;
+		strokeWidth = _x;
+		return this;
+	};
+
+	exports.strokeColor = function(_x) {
+		//takes a css color or hex
+		if (!arguments.length) return strokeColor;
+		strokeColor = _x;
+		return this;
+	};
+
+	exports.yFormat = function(_x) {
+		//takes a d3.format method in the form of d3.format("0.2f")
+		if (!arguments.length) return yFormat;
+		yFormat = _x;
+		return this;
+	};
+
+	exports.yMax = function(_x) {
+		//takes a number; 
+		if (!arguments.length) return yMax;
+		yMax = _x;
+		return this;
+	};
+	return exports;
+};//end module
