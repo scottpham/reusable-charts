@@ -195,12 +195,12 @@
     <h1>Birdstrikes in the National Airspace</h1>
     <h2>National wildlife strikes per 10,000 flights, 1990-2013.</h2>
     <p>People fly more than they used to, but planes are striking birds and other wildlife at an even faster rate. In 1990, there were about 2.59 wildlife strikes for every 10,000 flights flown.  Now, there are more than 10 strikes per 10,000 flights. </p>
-    <div id = "graphics">
+
     <div id="graphic1">
     </div>
     <div id="graphic2">
     </div>
-</div>
+
 
     <div class="footer">
         <p>Source: FAA</p>
@@ -223,30 +223,6 @@
 
         //specify options
         //specify data source
-    d3.csv("airport-strikes.csv", function(data) {
-        d3.select("#graphic1")
-            .datum(data)
-            .call(myLineChart);
-    });
-
-     //specify data source
-    d3.csv("airport-strikes.csv", function(datas) {
-        d3.select("#graphic2")
-            .datum(datas)
-            .call(myLineChart2);
-    });
-
-
-
-    var myLineChart2 = d3.custom.lineChart()
-        .xAccess(function(d) {return d.year; })
-        .yAccess(function(d) {return +d.sjc; })
-        .yAxisLabel("SJC")
-        .yFormat(d3.format("0.2f"));
-
-
-
-
 
     var myLineChart = d3.custom.lineChart()
         .xAccess(function(d) {return d.year; })
@@ -254,16 +230,31 @@
         .yAxisLabel("SFO")
         .yFormat(d3.format("0.2f"));
 
+    d3.csv("airport-strikes.csv", function(data) {
+        d3.select("#graphic1")
+            .datum(data)
+            .call(myLineChart);
+    });
 
 
+    var formatDate = d3.time.format("%b %Y");
 
+    var secondLineChart = d3.custom.lineChart()
+        .xAccess(function(d) {return formatDate.parse(d.date); })
+        .yAccess(function(d) {return +d.price; })
+        .yAxisLabel("S&P")
+        .yFormat(d3.format("0.2f"))
+        .xFormat(d3.time.format("%Y"))
+        .xScale(d3.time.scale())
+        .marginLeft(65)
+        .tickSize(10);
 
-
-
-
-
-
-
+         //specify data source
+    d3.csv("sp500.csv", function(datas) {
+        d3.selectAll("#graphic2")
+            .datum(datas)
+            .call(secondLineChart);
+    });
 
 
 

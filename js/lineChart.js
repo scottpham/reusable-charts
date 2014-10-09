@@ -1,7 +1,6 @@
 //namespace
 d3.custom = {};
-var x = function(){},
-	y = function(){};
+
 
 //linechart under the module namespace
 d3.custom.lineChart = function module() {
@@ -9,13 +8,14 @@ d3.custom.lineChart = function module() {
 	var mobileThreshold = 350,
 		aspect_width = 16,
 		aspect_height = 9,
-		pymChild = null,
 		tickSize = 13,
 		labelClass = "label",
 		yAxisLabel = "This is the Y Axis",
 		strokeWidth = 5,
-		strokeColor = "#28556F" //dark blue
-		xScale = d3.scale.linear();
+		strokeColor = "#28556F", //dark blue
+		xScale = d3.scale.linear(),
+		xAccess = function(d){ return d.year},
+		yAccess = function(d){ return d.value};
 
 	var margin = {
 		top: 10,
@@ -37,9 +37,9 @@ d3.custom.lineChart = function module() {
 	function exports(_selection) {
 		_selection.each(function(_data) {
 
-		var selection = "#" + [_selection[0][0].id]
+		var selection = "#" + [_selection[0][0].id];
 
-		console.log(selection)
+		console.log(_selection);
 		console.log(_data);
 		// Convert data to standard representation greedily;
 		// this is needed for nondeterministic accessors.
@@ -59,7 +59,7 @@ d3.custom.lineChart = function module() {
 				   labelClass = 'labelSmall';
 				   tickSize = Math.ceil(tickSize/2);
 				   strokeWidth = Math.ceil(strokeWidth/2);
-				   console.log("Mobile Threshold Reached")
+				   console.log("Mobile Threshold Reached");
 				   }
 				else {
 				    tickSize = tickSize;
@@ -70,24 +70,15 @@ d3.custom.lineChart = function module() {
 		    //set mobile variables
 		    ifMobile(width);
 
-		    //create svg, transform it and group it
-		    var svg = d3.select(this)
-		    	.append("svg")
-		        .attr("width", width + margin.left + margin.right)
-		        .attr("height", height + margin.top + margin.bottom).append("g")
-		            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-		    //async was here
-
-	        var x_axis_grid = function() { return xAxis; }; 
-
-	        var y_axis_grid = function() { return yAxis; };
-
+		   	//scales
 			var x = xScale
 					.range([0, width])
 					.domain(d3.extent(_data, function(d) { return d[0]; }));
-			var y = d3.scale.linear().range([height, 0]).domain([0, d3.max(_data, function(d) { return d[1]; })]);
 
+			//note: make y scale accessible via api
+			var y = d3.scale.linear().range([height, 0]).domain([0, d3.max(_data, function(d) { return d[1]; })]);	
+
+		    //define axes
 	        var xAxis = d3.svg.axis()
 	            .ticks(tickSize)
 	            .tickFormat(xFormat)
@@ -102,14 +93,47 @@ d3.custom.lineChart = function module() {
 	            .tickSize(5,5,0)
 	            .scale(y);
 
-	        svg.append("g")
-	            .attr("class", "x axis")
-	            .attr("transform", "translate(0," + height + ")")
-	            .call(xAxis);
+	        //define line
+	        var line = d3.svg.line()
+	            .x(function(d) {return x(d[0]); })
+	            .y(function(d) {return y(d[1]); });	        
 
-	        svg.append("g")
-	            .attr("class", "y axis")
-	            .call(yAxis)
+		    //look for svg and select
+		    var svg = d3.select(this).selectAll("svg").data([_data]);
+		    //skeleton chart
+		    var gEnter = svg.enter().append("svg").append("g");
+		    gEnter.append("g").attr("class", "x grid");
+		    gEnter.append("g").attr("class", "y grid");
+		    gEnter.append("path").attr("class", "line");
+		    gEnter.append("g").attr("class", "x axis");
+		    gEnter.append("g").attr("class", "y axis");
+		    gEnter.append("g").attr("class", "focus");
+		    gEnter.append("g").attr("class", "overlay");
+		    
+
+		    //update outer skeleton
+		    svg.attr("width", width + margin.left + margin.right)
+		    	.attr("height", height + margin.top + margin.bottom);
+
+		    //update inner skeleton (everything is appended to this)
+			var g = svg.select("g")
+		    	.attr("transform", "translate(" + margin.left + "," + margin.top + ")" );
+
+		   	//grid
+	        var x_axis_grid = function() { return xAxis; }; 
+
+	        var y_axis_grid = function() { return yAxis; };
+
+		    g.select(".line").attr("d", line)
+	            .style("stroke-width", strokeWidth)
+	            .style("stroke", strokeColor);
+
+		    g.select(".x.axis")
+		    	.attr("transform", "translate(0," + height + ")")
+		    	.call(xAxis);
+
+		    g.select(".y.axis")
+		    	.call(yAxis)
 	            .append("text")
 	                .attr("transform", "rotate(-90)")
 	                .attr("y", -margin.left + 10)
@@ -119,35 +143,21 @@ d3.custom.lineChart = function module() {
 	                .attr("class", labelClass)
 	                .text(yAxisLabel);  
 
-	        var line = d3.svg.line()
-	            .x(function(d) {return x(d[0]); })
-	            .y(function(d) {return y(d[1]); });
-
 	        //grid
-	        svg.append("g")
-	            .attr("class", "grid")
-	            .call(x_axis_grid()
-	                .tickSize(height, 0, 0)
-	                .tickFormat(" "));
 
-	        svg.append("g")
-	            .attr("class", "grid")
+	        g.select(".y.grid")
 	            .call(y_axis_grid()
 	                .tickSize(-width, 0, 0)
 	                .tickFormat(" "));
+
+	        g.select(".x.grid")
+	            .call(x_axis_grid()
+	                .tickSize(height, 0, 0)
+	                .tickFormat(" "));	            
 	        //end grid
 
-	        //append line
-	        svg.append("path")
-	            .datum(_data)
-	            .attr("class", "line")
-	            .attr("d", line)
-	            .style("stroke-width", strokeWidth)
-	            .style("stroke", strokeColor);
-
 	        //mouseover effects
-	        var focus = svg.append("g")
-	          .attr("class", "focus")
+	        var focus = g.select(".focus")
 	          .style("display", "none");
 
 	        focus.append("circle")
@@ -163,8 +173,7 @@ d3.custom.lineChart = function module() {
 		    	.style("opacity", 0);
 
 	        //mouseover overlay
-	        svg.append("rect")
-	          .attr("class", "overlay")
+	        g.select(".overlay")
 	          .attr("width", width) //adjust these if the chart isn't capturing pointer events
 	          .attr("height", height + margin.top)
 	          .on("mouseover", function() { 
@@ -192,7 +201,7 @@ d3.custom.lineChart = function module() {
 	            //show div
 	           	d3.select(selection).selectAll(".tooltip").transition()
 	           		.duration(200)
-	           		.style("opacity", .9);
+	           		.style("opacity", 0.9);
 
 	           	d3.select(selection).selectAll(".tooltip")
 	           		.html(yFormat(d[1]) + " strikes")
@@ -228,7 +237,7 @@ d3.custom.lineChart = function module() {
 		if(!arguments.length) return pathX;
 		pathX = _x;
 		return this;
-	}
+	};
 
 	exports.pathY = function(_x) {
 		//give a csv header--the "value" in d.value
@@ -236,88 +245,87 @@ d3.custom.lineChart = function module() {
 		pathY = _x;
 		tooltip.value = _x;
 		return this;
-	}
+	};
 
 	exports.tooltip = function(_x, _y) {
 		//takes the value passed to the tooltip and the string to follow it
 		if (!arguments.length) return tooltip;
-		tooltip.value = _x,
+		tooltip.value = _x;
 		tooltip.string = _y;
 		return this;
-	}
+	};
 
 	exports.strokeWidth = function (_x) {
 		//takes a number
 		if (!arguments.length) return strokeWidth;
 		strokeWidth = _x;
 		return this;
-	}
+	};
 
 	exports.strokeColor = function(_x) {
 		//takes a css color or hex
 		if (!arguments.length) return strokeColor;
 		strokeColor = _x;
 		return this;
-	}
+	};
 
 	exports.yFormat = function(_x) {
 		//takes a d3.format string
 		if (!arguments.length) return yFormat;
 		yFormat = _x;
 		return this;
-	}
+	};
 
 	exports.xFormat = function(_x) {
 		//takes a d3.format string
 		if (!arguments.length) return xFormat;
 		xFormat = _x;
 		return this;
-	}
+	};
 
 	exports.yAxisLabel = function(_x) {
 		//takes a string
 		if (!arguments.length) return yAxisLabel;
 		yAxisLabel = _x;
 		return this;
-	}
+	};
 
 	exports.tickSize = function(_x) {
 		//takes a number
 		if (!arguments.length) return tickSize;
 		tickSize = _x;
 		return this;
-	}
+	};
 
 	exports.margin = function(_x) {
 		//takes a margin object: 
 		if (!arguments.length) return margin;
 		margin = _x;
 		return this;
-	}
+	};
 
 	exports.marginLeft = function(_x) {
 		//takes a number: 
 		if (!arguments.length) return margin.left;
 		margin.left = _x;
 		return this;
-	}
+	};
 
 	exports.xScale = function(_x) {
 		//takes a d3 scale
 		if (!arguments.length) return xScale;
 		xScale = _x;
 		return this;
-	}
+	};
 
 	exports.yAxisFormat = function(_x) {
 		//takes a margin object: 
 		if (!arguments.length) return yAxisFormat;
 		yAxisFormat = _x;
 		return this;
-	}
+	};
 
 	return exports;
 
 }; //end
-
 
