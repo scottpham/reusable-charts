@@ -25,18 +25,18 @@ d3.custom.lineChart = function module() {
 
 	var tooltip = {
 		value: "",//unused for now.  Only useful if more than two columns of data are present
-		string: ""
+		string: "",
+		format: d3.format("f")//fixed to two decimal places
 	};
 	//formats
-	var xFormat = d3.format("f"),
-		yFormat = d3.format("f"), //two decimal placs
-		yAxisFormat = d3.format("s");
+	var xFormat = d3.format("f")//fixed
+		yAxisFormat = d3.format("s"); //scientific
 
 	var _data = [];
 	//scales
 	var xScale = d3.scale.linear(),
 		yScale = d3.scale.linear(),
-		yMax = d3.max(_data, function(d) { return d[1]; });
+		yMax = null;
 
 
 	//everything below this is private
@@ -81,7 +81,10 @@ d3.custom.lineChart = function module() {
 			var x = xScale.range([0, width])
 					.domain(d3.extent(_data, function(d) { return d[0]; }));
 
-			var y = yScale.range([height, 0]).domain([0, yMax]); //ymax is a function or a number	
+			var y = yScale.range([height, 0]).domain([0, d3.max(_data, function(d) { return d[1];})]); //ymax is a function or a number	
+
+			//check to see if user has set an arbitrary max value
+			yMax ? y.domain([0, yMax]): null;
 
 		    //define axes
 	        var xAxis = d3.svg.axis()
@@ -217,12 +220,12 @@ d3.custom.lineChart = function module() {
 	           		.style("opacity", 0.9);
 
 	           	d3.select(selection).selectAll(".tooltip")
-	           		.html(yFormat(d[1]) + " strikes")
+	           		.html(tooltip.format(d[1]) + " strikes")
 	           		.style("left", x(d[0]) + margin.left + $(selection).position().left + "px")
 	           		.style("top", y(d[1]) + $(selection).position().top + -20 + "px");
 
 	           	d3.select(selection).selectAll(".tooltip")
-	           		.html(yFormat(d[1]) + " " + tooltip.string);
+	           		.html(tooltip.format(d[1]) + " " + tooltip.string);
 
 	        }//end mouseover effects
 		});
@@ -271,10 +274,10 @@ d3.custom.lineChart = function module() {
 		return this;
 	};
 
-	exports.yFormat = function(_x) {
+	exports.tooltipFormat = function(_x) {
 		//takes a d3.format method in the form of d3.format("0.2f")
-		if (!arguments.length) return yFormat;
-		yFormat = _x;
+		if (!arguments.length) return tooltip.format;
+		tooltip.format = _x;
 		return this;
 	};
 
@@ -374,7 +377,6 @@ d3.custom.addLine = function module() {
 
 	//formats
 	var xFormat = d3.format("f"),
-		yFormat = d3.format("f"), //two decimal placs
 		yAxisFormat = d3.format("s");
 
 	var _data = [];
@@ -421,7 +423,7 @@ d3.custom.addLine = function module() {
 	    //look for svg and select
 	    var svg = d3.select(this).selectAll("svg");
 
-		var g = svg.select("g")
+		var g = svg.select("g");
 
 		g.append("path")
 			.datum(_data)
@@ -474,12 +476,6 @@ d3.custom.addLine = function module() {
 		return this;
 	};
 
-	exports.yFormat = function(_x) {
-		//takes a d3.format method in the form of d3.format("0.2f")
-		if (!arguments.length) return yFormat;
-		yFormat = _x;
-		return this;
-	};
 
 	exports.yMax = function(_x) {
 		//takes a number; 
