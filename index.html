@@ -118,6 +118,7 @@
         .yAxisLabel("SFO")
         .tooltipFormat(d3.format("0.2f"))
         .strokeWidth(5)
+        .aspect(4,3)
         .marginLeft(45);
     //call data
     d3.csv("airport-strikes.csv", function(data) {
@@ -132,6 +133,7 @@
         .xAccess(function(d) {return d.year; })
         .yAccess(function(d) {return +d.oak; })
         .yAxisLabel("OAK")
+        .aspect(4,3)
         .tooltipFormat(d3.format("0.2f"))
         .strokeWidth(5)
         .marginLeft(45);
@@ -148,6 +150,7 @@
         .xAccess(function(d) {return d.year; })
         .yAccess(function(d) {return +d.sjc; })
         .yAxisLabel("SJC")
+        .aspect(4,3)
         .tooltipFormat(d3.format("0.2f"))
         .strokeWidth(5)
         .marginLeft(45);
@@ -159,53 +162,25 @@
     });
     //end chart
 
-    //medium sfo chart
-    var graphic4 = d3.custom.lineChart()
+    
+    //big flight chart
+    var flights = d3.custom.lineChart()
         .xAccess(function(d) {return d.year; })
-        .yAccess(function(d) {return +d.sfo; })
-        .yAxisLabel("SFO")
-        .tooltipFormat(d3.format("0.2f"))
-        .strokeWidth(5)
-        .yMax(26)
-        .hover("false")
-        .marginLeft(45);
+        .yAccess(function(d) {return +d.flights; })
+        .yAxisLabel("Total Flights in US")
+        .tooltipFormat(d3.format(",f"))
+        .strokeColor("maroon")
+        .xScale(d3.time.scale())
+        .marginLeft(55)
+        .tickSize(10)
+        .tooltipString("Flights");
 
-    d3.csv("airport-strikes.csv", function(data) {
-        d3.select("#graphic4")
-            .datum(data)
-            .call(graphic4);
+         //specify data source
+    d3.csv("us-strikes.csv", function(datas) {
+        d3.selectAll("#graphic4")
+            .datum(datas)
+            .call(flights);
     });
-    //end chart
-
-    //adding oakland line to sfo chart
-    var secondLine = d3.custom.addLine()
-        .xAccess(function(d) { return d.year; })
-        .yAccess(function(d) { return +d.oak; })
-        .strokeColor("lightblue")
-        .strokeWidth(5)
-        .yMax(26);
-
-    d3.csv("airport-strikes.csv", function(data){
-        d3.select("#graphic4")
-            .datum(data)
-            .call(secondLine);
-    });
-    //end add line
-
-    //adding san jose to sfo chart
-    var thirdLine = d3.custom.addLine()
-        .xAccess(function(d) { return d.year; })
-        .yAccess(function(d) { return +d.sjc; })
-        .strokeColor("lightgreen")
-        .strokeWidth(5)
-        .yMax(26);
-
-    d3.csv("airport-strikes.csv", function(data){
-        d3.select("#graphic4")
-            .datum(data)
-            .call(thirdLine);
-    });
-
     //medium stock chart
     var formatDate = d3.time.format("%b %Y");
 
@@ -230,26 +205,53 @@
     //end chart
 
 
-    //big flight chart
-    var flights = d3.custom.lineChart()
+
+//big airports chart
+    var graphic4 = d3.custom.lineChart()
         .xAccess(function(d) {return d.year; })
-        .yAccess(function(d) {return +d.flights; })
-        .yAxisLabel("Total Flights in US")
-        .tooltipFormat(d3.format(",f"))
-        .strokeColor("maroon")
-        .xScale(d3.time.scale())
-        .marginLeft(55)
-        .tickSize(10)
-        .tooltipString("Flights");
+        .yAccess(function(d) {return +d.sfo; })
+        .yAxisLabel("Bay Area Airports")
+        .tooltipFormat(d3.format("0.2f"))
+        .strokeWidth(5)
+        .yMax(26)
+        .hover("false")
+        .marginLeft(45);
 
-         //specify data source
-    d3.csv("us-strikes.csv", function(datas) {
-        d3.selectAll("#graphic6")
-            .datum(datas)
-            .call(flights);
+    d3.csv("airport-strikes.csv", function(data) {
+        d3.select("#graphic6")
+            .datum(data)
+            .call(graphic4);
     });
+    //end chart
 
+    //adding oakland line to sfo chart
+    var secondLine = d3.custom.addLine()
+        .xAccess(function(d) { return d.year; })
+        .yAccess(function(d) { return +d.oak; })
+        .strokeColor("lightblue")
+        .strokeWidth(5)
+        .yMax(26);
 
+    d3.csv("airport-strikes.csv", function(data){
+        d3.select("#graphic6")
+            .datum(data)
+            .call(secondLine);
+    });
+    //end add line
+
+    //adding san jose to sfo chart
+    var thirdLine = d3.custom.addLine()
+        .xAccess(function(d) { return d.year; })
+        .yAccess(function(d) { return +d.sjc; })
+        .strokeColor("lightgreen")
+        .strokeWidth(5)
+        .yMax(26);
+
+    d3.csv("airport-strikes.csv", function(data){
+        d3.select("#graphic6")
+            .datum(data)
+            .call(thirdLine);
+    });
 
 
 

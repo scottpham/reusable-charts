@@ -6,8 +6,6 @@ d3.custom = {};
 d3.custom.lineChart = function module() {
 	//define some private vars
 	var mobileThreshold = 350,
-		aspect_width = 16,
-		aspect_height = 9,
 		tickSize = 13,
 		yAxisLabel = "This is the Y Axis",
 		strokeWidth = 5,
@@ -15,6 +13,12 @@ d3.custom.lineChart = function module() {
 		xAccess = function(d){ return d.year;},
 		yAccess = function(d){ return d.value;},
 		hover = "true";
+
+	//aspect ratio
+	var aspect = {
+		width: 16,
+		height: 9
+	};
 
 	var margin = {
 		top: 10,
@@ -58,7 +62,7 @@ d3.custom.lineChart = function module() {
 		    var width = $(this).width() - margin.left - margin.right;
 
 		    //set height
-		    var height = Math.ceil((width * aspect_height) / aspect_width) - margin.top - margin.bottom;
+		    var height = Math.ceil((width * aspect.height) / aspect.width) - margin.top - margin.bottom;
 		   	//mobile checks
 
 			function ifMobile(w) {
@@ -351,6 +355,14 @@ d3.custom.lineChart = function module() {
 		return this;
 	};
 
+	exports.aspect = function(_x, _y) {
+		//takes two numbers to represent an aspect ratio. Looks best with 16,9 or 4,3
+		if(!arguments.length) return aspec;
+		aspect.width = _x;
+		aspect.height = _y;
+		return this;
+	}
+
 	return exports;
 
 }; //end
@@ -359,14 +371,18 @@ d3.custom.lineChart = function module() {
 d3.custom.addLine = function module() {
 	//private vars
 	var mobileThreshold = 350,
-		aspect_width = 16,
-		aspect_height = 9,
 		tickSize = 13,
 		yAxisLabel = "This is the Y Axis",
 		strokeWidth = 5,
 		strokeColor = "#28556F", //dark blue
 		xAccess = function(d){ return d.year;},
 		yAccess = function(d){ return d.value;};
+
+	//aspect ratio
+	var aspect = { 
+		width: 16,
+		height: 9
+	}
 
 	var margin = {
 		top: 10,
@@ -396,7 +412,7 @@ d3.custom.addLine = function module() {
 	    var width = $(this).width() - margin.left - margin.right;
 
 	    //set height
-	    var height = Math.ceil((width * aspect_height) / aspect_width) - margin.top - margin.bottom;
+	    var height = Math.ceil((width * aspect.height) / aspect.width) - margin.top - margin.bottom;
 
 	    //change on mobile
 	    function ifMobile(w) {
